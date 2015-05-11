@@ -1,3 +1,6 @@
 *~
 *_Store
 ._*
+*.aux
+*.log
+*.dvi
