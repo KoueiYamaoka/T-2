@@ -8,7 +8,7 @@ imp12 = fread(fid12, 'double');
 imp21 = fread(fid21, 'double');
 imp22 = fread(fid22, 'double');
 
-resample(imp11, 441000, 48000);
-resample(imp12, 441000, 48000);
-resample(imp21, 441000, 48000);
-resample(imp22, 441000, 48000);
+resample(imp11, 44100, 48000);
+resample(imp12, 44100, 48000);
+resample(imp21, 44100, 48000);
+resample(imp22, 44100, 48000);
