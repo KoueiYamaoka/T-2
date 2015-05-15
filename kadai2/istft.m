@@ -35,4 +35,4 @@ for k = 1:al
 end
 
 Y = Y ./ countX;
-[r,c,Y] = find(Y);
+%[r,c,Y] = find(Y);
