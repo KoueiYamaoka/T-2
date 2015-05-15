@@ -1,5 +1,5 @@
-[s1, Fs] = wavread('~/Documents/T2/kadai2/wavFiles/sample1.wav');
-s2 = wavread('~/Documents/T2/kadai2/wavFiles/sample2.wav');
+[s1, Fs] = wavread('~/Documents/T2/kadai2/wavFiles/tatamikomi1.wav');
+s2 = wavread('~/Documents/T2/kadai2/wavFiles/tatamikomi2.wav');
 s1 = s1';
 s2 = s2';
 l1 = length(s1);
