@@ -1,5 +1,5 @@
 readImp;
-readWav;
+readWav2;
 
 N = length(s1);    %音源の長さ
 R = length(imp11); %インパルス応答の長さ
@@ -20,9 +20,11 @@ H(1,2,:) = I21;
 H(2,2,:) = I22;
 
 X = zeros(2, K);
-for k = 1:K
-    X(:,k) = H(:,:,k) * S(:,k);
-end
+%for k = 1:K
+%    X(:,k) = H(:,:,k) * S(:,k);
+%end
+X(1,:) = S1 .* I11.' + S2 .* I21.';
+X(2,:) = S1 .* I12.' + S2 .* I22.';
 
 x1 = real(ifft(X(1,:), K));
 x2 = real(ifft(X(2,:), K));
