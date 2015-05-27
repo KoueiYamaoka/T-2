@@ -31,6 +31,19 @@ x2 = real(ifft(X(2,:), K));
 
 
 
+%W = zeros(2,2,K);
+%for k=1:K
+%    W(:,:,k) = inv(H(:,:,k));
+%end
+
+%Y = zeros(2, K);
+
+%for k=1:K
+%Y(1,k) = X(1,k) * W(1,1,k) + X(2,k) * W(1,2,k);
+%Y(2,k) = X(1,k) * W(2,1,k) + X(2,k) * W(2,2,k);
+%end
+%y1 = real(ifft(Y(1,:)));
+%y2 = real(ifft(Y(2,:)));
 
 
 

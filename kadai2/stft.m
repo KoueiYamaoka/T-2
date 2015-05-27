@@ -1,13 +1,13 @@
 function [X, countX] =  stft(s, o, p, w)
 % s:音源, o:オーバーラップ幅, p:フレーム長, w:窓関数
 
-o = 1 / o;
 sl = length(s);    % 音源の長さ
-ol = floor(p/o);
+ol = floor(p*o);
 al = floor(((sl-p)/ol) + 1);  % 総フレーム数
-X = zeros(al,p+(p-1));  % stft分析後、格納するための行列
+X = zeros(al,p);  % stft分析後、格納するための行列
                         %循環畳み込みを線形畳み込みにするために
                         %p-1だけ0埋めする.  
+                        % 循環畳み込み出よかった
 countX = zeros(1, sl);  % 切り出した回数を保存する配列
 
 % 窓
@@ -33,7 +33,7 @@ end
 
 for k = 1:al
     % 窓をかけ、fft
-    X(k,1:p) = s(1 + ol*(k-1) : p + ol*(k-1)) .* w';
+    X(k,:) = s(1 + ol*(k-1) : p + ol*(k-1)) .* w';
     X(k,:) = fft(X(k,:));
     % 今のインデックスに1加算 
     countX(1 + ol*(k-1) : p + ol*(k-1)) = ...
