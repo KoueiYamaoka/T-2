@@ -4,4 +4,4 @@
 *.aux
 *.log
 *.dvi
-*.nfs
+*.nfs*
