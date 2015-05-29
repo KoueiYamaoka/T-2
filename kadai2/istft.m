@@ -26,17 +26,13 @@ else
 end
 
 [al, foo] = size(X);
-Y = zeros(1,sl);  % istft後、格納するためのベクトル  
-ifftVec = zeros(1,p);
+Y = zeros(1,sl);  % istft後、格納するためのベクトル
 for k = 1:al
-    % 0埋め部分を切り取る
-    ifftVec = real(ifft(X(k,:)));
-    % 窓をとる
-    %    Y(1 + ol*(k-1) : p + ol*(k-1)) = Y(1 + ol*(k-1) : p + ol*(k-1)) ...
-    %    + ifftVece;% ./ w';
+    % ifftし窓をとる
     Y(1 + ol*(k-1) : ol*(k-1) + p) = Y(1 + ol*(k-1) : ol*(k-1) + p) ...
-        + ifftVec ./ w';
+        + real(ifft(X(k,:))) ./ w';
 end
 
 Y = Y ./ countX;
-%[r,c,Y] = find(Y);
+[foo,foo2,Y] = find(Y);
+clear foo foo2

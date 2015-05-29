@@ -1,15 +1,37 @@
 clear all;
 
+%畳み込み混合信号の生成
 run('/home/ugrad/13/s1311403/Documents/T2/kadai2/exkadai/readImp.m')
-run('/home/ugrad/13/s1311403/Documents/T2/kadai2/exkadai/readWav.m')
+run('/home/ugrad/13/s1311403/Documents/T2/kadai2/exkadai/readWav2.m')
 
+
+N = length(s1);    %音源の長さ
+R = length(imp11); %インパルス応答の長さ
+K = N + R - 1;
+
+S1 = fft(s1, K);
+S2 = fft(s2, K);
+I11 = fft(imp11, K);
+I21 = fft(imp21, K);
+I12 = fft(imp12, K);
+I22 = fft(imp22, K);
+
+X = zeros(2, K);
+X(1,:) = S1 .* I11.' + S2 .* I21.';
+X(2,:) = S1 .* I12.' + S2 .* I22.';
+
+s1 = real(ifft(X(1,:), K));
+s2 = real(ifft(X(2,:), K));
+%生成完了
+
+%stft分析
+%s1,s2:混合信号, y1,y2:分離信号
 o = 2; % オーバーラップ幅
-p = 2^(nextpow2(length(imp11))+1); % フレーム長、インパルス応答を8000まで使用
-w = 3; % 窓関数、ここではハミング窓
+p = 2^(nextpow2(length(imp11))); % フレーム長、インパルス応答以上の大きさに
+w = 4; % 窓関数、今は箱形窓
 sl = length(s1);
 
-% Y = inv(H) * X
-% X
+% stft
 [X1, countX1] = stft(s1, 1/o, p, w);
 [X2, countX2] = stft(s2, 1/o, p, w);
 
@@ -26,23 +48,7 @@ for k=1:p
     W(:,:,k) = inv(H(:,:,k));
 end
 
-% 循環畳み込みを線形畳み込みにするための0埋め処理
-% 循環畳み込みでよかった
-% 長さをpに
-% ifft(W)
-%W(1,1,:) = real(ifft(W(1,1,:)));
-%W(1,2,:) = real(ifft(W(1,2,:)));
-%W(2,1,:) = real(ifft(W(2,1,:)));
-%W(2,2,:) = real(ifft(W(2,2,:)));
-
-% W2 = fft(W,p)
-%W2 = zeros(2,2,p);
-%W2(1,1,:) = fft(W(1,1,:), p);
-%W2(1,2,:) = fft(W(1,2,:), p);
-%W2(2,1,:) = fft(W(2,1,:), p);
-%W2(2,2,:) = fft(W(2,2,:), p);
-
-% Y = W2 * X
+% Y = W * X
 [Xg, Xr] = size(X1); % Xg:行数(165), Xr:列数(2^13)
 Y1 = zeros(Xg,Xr);
 Y2 = zeros(Xg,Xr);

@@ -6,6 +6,7 @@ s1 = s1';
 s2 = s2';
 l1 = length(s1);
 l2 = length(s2);
+
 if l1 > l2
     append0 = zeros(1, l1 - l2);
     s2 = [s2, append0];
