@@ -30,7 +30,7 @@ Y = zeros(1,sl);  % istft後、格納するためのベクトル
 for k = 1:al
     % ifftし窓をとる
     Y(1 + ol*(k-1) : ol*(k-1) + p) = Y(1 + ol*(k-1) : ol*(k-1) + p) ...
-        + real(ifft(X(k,:))) ./ w';
+        + real(ifft(X(k,:)));
 end
 
 Y = Y ./ countX;
