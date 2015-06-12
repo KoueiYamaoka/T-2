@@ -1,9 +1,9 @@
 clear all
 
-%畳み込み混合信号の生成
+%畳み込み混合信号の生成-----------------------------
 run('/home/ugrad/13/s1311403/Documents/T2/kadai2/exkadai/readImp.m')
 run('/home/ugrad/13/s1311403/Documents/T2/kadai2/exkadai/readWav2.m')
-clear fid11 fid12 fid21 fid 22
+clear fid11 fid12 fid21 fid22
 
 N = length(s1);    %音源の長さ
 R = length(imp11); %インパルス応答の長さ
@@ -22,57 +22,101 @@ X(2,:) = S1 .* I12.' + S2 .* I22.';
 
 s1 = real(ifft(X(1,:), K));
 s2 = real(ifft(X(2,:), K));
-%生成完了
+
+implen = R;
+
+clear imp11 imp12 imp21 imp22 I11 I12 I21 I22 N R K
+%生成完了---------------------------------------------
 
 %IVAの実装
 %stft分析
 %s1,s2:混合信号, y1,y2:分離信号
 o = 2; % オーバーラップ幅
-p = 2^(nextpow2(length(imp11)) - 5); % フレーム長、インパルス応答以上の大きさに
-w = 4; % 窓関数、今は箱形窓
+p = 2^(nextpow2(implen) - 5); % フレーム長、インパルス応答以上の大きさに
+w = 1; % 窓関数、今は箱形窓
 sl = length(s1);
 
 % stft
 [X1, countX1] = stft(s1, 1/o, p, w);
 [X2, countX2] = stft(s2, 1/o, p, w);
-[fs,fi] = size(X1);
-X = zeros(2,fi,fs); % 2行, 周波集インデックス列, フレーム数
-X(1,:,:) = X1';
-X(2,:,:) = X2';
+[fi,fs] = size(X1);
 
-%Y初期化
+% 分離行列Wの生成-------------------------------------------------------
+% 分離行列Wの更新の事前準備-----------------------
+% Wとその他諸々
+L2 = ceil(fs/2);         % 総フレーム数 / 2
+                         %rng(509);                % seed値
+W = rand(2,2,L2);        % 分離行列
+compW = zeros(size(W));  % 反復終了判定の比較用
+maxloop = 10e3;          % 最大反復回数10000回
+
+% X, Yについて
+X = zeros(2,fi,L2); % 2行, 周波集インデックス列, フレーム数
+X1 = X1(:,1:L2).';
+X2 = X2(:,1:L2).';
+X1 = reshape(X1,1,fi,L2);
+X2 = reshape(X2,1,fi,L2);
+X(1,:,:) = X1;
+X(2,:,:) = X2;
 Y = zeros(size(X));
+% 準備完了-----------------------------------------
 
-% 分離行列Wの生成
-W = ones(2,2,fi);
-mu = 1;
-ganma = 1;
-M = fs; %総フレーム数
+% warning
+% k = 15, i = 154でY1が全てNaNになるバグ
+% k = 15のときW(613) = NaN, W(2925) = Inf
 
-% Y = W * X
-L = 1 : (p/2);
-sumY = 0;
 
-for f = 1:fi
-    for l=1:5
-        for m = 1:fs;
-            Y(1,f,m) = W(1,1,f) * X(1,f,m) + W(1,2,f) * X(2,f,m);
-            Y(2,f,m) = W(2,1,f) * X(1,f,m) + W(2,2,f) * X(2,f,m);
-            Y1norm = sqrt(sum(Y(1,L,m)));
-            Y2norm = sqrt(sum(Y(2,L,m)));
-         
-            psiY = ganma * [(Y(1,f,m) / Y1norm), (Y(2,f,m) / ...
-                                                  Y2norm)]';
-            sumY = sumY + psiY * Y(:,f,m)';
-        end
-        tmp = mu * (eye(2) - ((1 / M) * sumY)) * W(:,:,f);
-        W(:,:,f) = W(:,:,f) + tmp;
-        if tmp < 1e-5
-            l
-            break
-        end
+
+
+% 反復計算開始-------------------------------------
+for k=1:maxloop
+
+if k == 15
+    %        keyboard
     end
+    % Y = W * X 普通より速いと思うけどなぁ
+    tmpY = zeros(2,2,L2);
+    for l = 1:fi
+        tmpY = W .* repmat(X(:,l,:), 1, 2);
+        Y(:,l,:) = tmpY(:,1,:);
+    end
+    %終了----------------------------------------------------
+
+    % Wの更新------------------------------------------------
+    % 準備
+    Y1 = squeeze(Y(1,:,:)).';
+    Y2 = squeeze(Y(2,:,:)).';
+    normY1 = sqrt(sum(Y1));
+    normY2 = sqrt(sum(Y2));
+    XX = zeros(2,2,L2); %ループのmを先に計算したもの
+    
+    
+    W(:,:,100)
+    % 本体
+    for i = 1:L2
+        XX(:,:,i) = calcm(Y1(i,:), Y2(i,:), normY1, normY2, fi, k, i);
+    end
+    compW = W;
+    W = XX .* W;
+    W(:,:,100)
+    
+    % 終了----------------------------------------------------
+    % 反復終了判定
+    tmp = zeros(size(W));
+    tmp = abs(compW - W);
+    t = numel(find(tmp < 10e-5))
+    if  t == 4096
+        break;
+    end
+    
+end
+    
+% 最後の積計算
+for l = 1:fi
+    tmpY = W .* repmat(X(:,l,:), 1, 2);
+    Y(:,l,:) = tmpY(:,1,:);
 end
 
-y1 = istft(squeeze(Y(1,:,:))', 1/o, p, w, sl, countX1);
-y2 = istft(squeeze(Y(2,:,:))', 1/o, p, w, sl, countX1);
+y1 = istft(squeeze(Y(1,:,:)), 1, L2, sl, countX1);
+y2 = istft(squeeze(Y(2,:,:)), 1, L2, sl, countX2);
+    

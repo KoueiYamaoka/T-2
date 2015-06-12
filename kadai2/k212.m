@@ -61,5 +61,5 @@ for i=1:Xg
 end
 
 % istft
-y1 = istft(Y1, 1/o, p, w, sl, countX1);
-y2 = istft(Y2, 1/o, p, w, sl, countX2);
+y1 = istft(Y1, 1/o, p, sl, countX1);
+y2 = istft(Y2, 1/o, p, sl, countX2);
