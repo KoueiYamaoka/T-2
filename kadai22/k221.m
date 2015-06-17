@@ -45,8 +45,9 @@ sl = length(s1);
 % 分離行列Wの更新の事前準備-----------------------
 % Wとその他諸々
 L2 = ceil(fs/2);         % 総フレーム数 / 2
-                         %rng(509);                % seed値
-W = rand(2,2,L2);        % 分離行列
+rng(509);                % seed値
+W = rand(2,2,L2) - 0.5 + (rand(2,2,L2) - 0.5)*j;        % 分離行列
+W = W * 5000;
 compW = zeros(size(W));  % 反復終了判定の比較用
 maxloop = 10e3;          % 最大反復回数10000回
 
@@ -62,23 +63,17 @@ Y = zeros(size(X));
 % 準備完了-----------------------------------------
 
 % warning
-% k = 15, i = 154でY1が全てNaNになるバグ
-% k = 15のときW(613) = NaN, W(2925) = Inf
-
+% 収束せずにむしろ発散してる
+% Wの更新がうまくいってない可能性
 
 
 
 % 反復計算開始-------------------------------------
 for k=1:maxloop
-
-if k == 15
-    %        keyboard
-    end
     % Y = W * X 普通より速いと思うけどなぁ
     tmpY = zeros(2,2,L2);
     for l = 1:fi
-        tmpY = W .* repmat(X(:,l,:), 1, 2);
-        Y(:,l,:) = tmpY(:,1,:);
+        Y(:,l,:) = sum(W .* repmat(permute(X(:,l,:),[2,1,3]), 2, 1), 2);
     end
     %終了----------------------------------------------------
 
@@ -86,25 +81,25 @@ if k == 15
     % 準備
     Y1 = squeeze(Y(1,:,:)).';
     Y2 = squeeze(Y(2,:,:)).';
-    normY1 = sqrt(sum(Y1));
-    normY2 = sqrt(sum(Y2));
+    normY1 = sqrt(sum(abs(Y1).^2));
+    normY2 = sqrt(sum(abs(Y2).^2));
     XX = zeros(2,2,L2); %ループのmを先に計算したもの
     
-    
-    W(:,:,100)
     % 本体
     for i = 1:L2
-        XX(:,:,i) = calcm(Y1(i,:), Y2(i,:), normY1, normY2, fi, k, i);
+        XX(:,:,i) = calcm(Y1(i,:), Y2(i,:), normY1, normY2, fi);
     end
     compW = W;
-    W = XX .* W;
+    % W = XX * W
+    W(:,1,:) = sum(XX .* repmat(permute(W(:,1,:),[2,1,3]), 2,1), 2); 
+    W(:,2,:) = sum(XX .* repmat(permute(W(:,2,:),[2,1,3]), 2,1), 2); 
     W(:,:,100)
     
     % 終了----------------------------------------------------
     % 反復終了判定
     tmp = zeros(size(W));
     tmp = abs(compW - W);
-    t = numel(find(tmp < 10e-5))
+    t = numel(find(tmp < 10e-4))
     if  t == 4096
         break;
     end
@@ -113,8 +108,7 @@ end
     
 % 最後の積計算
 for l = 1:fi
-    tmpY = W .* repmat(X(:,l,:), 1, 2);
-    Y(:,l,:) = tmpY(:,1,:);
+    Y(:,l,:) = sum(W .* repmat(permute(X(:,l,:),[2,1,3]), 2, 1), 2);
 end
 
 y1 = istft(squeeze(Y(1,:,:)), 1, L2, sl, countX1);
