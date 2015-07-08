@@ -1,15 +1,15 @@
 clear all
 
-%混合音声の読み込み-----------------------------
+% 混合音声の読み込み-----------------------------
 [Mic1, Fs] = wavread('Mic_Ch1.wav');
 Mic2 = wavread('Mic_Ch2.wav');
 s1 = Mic1';
 s2 = Mic2';
-%読み込み完了-----------------------------------
+% 読み込み完了-----------------------------------
 
-%IVAの実装
-%stft分析
-%s1,s2:混合信号, y1,y2:分離信号
+% IVAの実装
+% stft分析
+% s1,s2:混合信号, y1,y2:分離信号
 o = 2; % オーバーラップ幅
 p = 2^(15); % フレーム長
 w = 1; % 窓関数、今はハミング
@@ -43,8 +43,7 @@ Y = zeros(size(X));
 % warning
 % 収束せずにむしろ発散してる
 % Wの更新がうまくいってない可能性
-
-
+% 反復回数が大きくなると少しだけ収束する
 
 % 反復計算開始-------------------------------------
 for k=1:maxloop
@@ -61,27 +60,26 @@ for k=1:maxloop
     Y2 = squeeze(Y(2,:,:)).';
     normY1 = sqrt(sum(abs(Y1).^2));
     normY2 = sqrt(sum(abs(Y2).^2));
-    XX = zeros(2,2,L2); %ループのmを先に計算したもの
+    XX = zeros(2,2,L2); % ループのmを先に計算したもの
     
     % 本体
     for i = 1:L2
         XX(:,:,i) = calcm(Y1(i,:), Y2(i,:), normY1, normY2, fi);
     end
-    compW = W;
+    compW = W; % 反復終了判定用にWを保存
     % W = XX * W
     W(:,1,:) = sum(XX .* repmat(permute(W(:,1,:),[2,1,3]), 2,1), 2); 
     W(:,2,:) = sum(XX .* repmat(permute(W(:,2,:),[2,1,3]), 2,1), 2); 
-    W(:,:,100)
+    W(:,:,100) % 確認のため適当なWを表示
     
     % 終了----------------------------------------------------
-    % 反復終了判定
+    % 反復終了判定. tは収束したWの要素の数
     tmp = zeros(size(W));
     tmp = abs(compW - W);
     t = numel(find(tmp < 10e-4))
     if  t == 4 * L2
         break;
-    end
-    
+    end  
 end
     
 % 最後の積計算
@@ -89,6 +87,7 @@ for l = 1:fi
     Y(:,l,:) = sum(W .* repmat(permute(X(:,l,:),[2,1,3]), 2, 1), 2);
 end
 
+% istft
 y1 = [squeeze(Y(1,:,:))];
 y2 = [squeeze(Y(2,:,:))];
 y1 = [y1, conj(fliplr(y1))];
