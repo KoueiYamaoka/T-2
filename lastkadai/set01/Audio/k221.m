@@ -1,4 +1,4 @@
-rm  clear all
+ clear all
 
 % 混合音声の読み込み-----------------------------
 [Mic1, Fs] = wavread('Mic_Ch1.wav');
@@ -23,16 +23,16 @@ sl = length(s1);
 % 分離行列Wの生成-------------------------------------------------------
 % 分離行列Wの更新の事前準備-----------------------
 % Wとその他諸々
-L2 = ceil(fs/2);         % 総フレーム数 / 2
+L2 = ceil(fs/2) + 1;         % 総フレーム数 / 2
 rng(509);                % seed値
-W = rand(2,2,L2) - 0.5 + (rand(2,2,L2) - 0.5)*j;        % 分離行列
+W = rand(2,2,L2) - 0.5%& + (rand(2,2,L2) - 0.5)*j;        % 分離行列
 compW = zeros(size(W));  % 反復終了判定の比較用
 maxloop = 300;          % 最大反復回数10000回
 
 % X, Yについて
 X = zeros(2,fi,L2); % 2行, 周波集インデックス列, フレーム数
-X1 = X1(:,1:L2).';
-X2 = X2(:,1:L2).';
+X1 = X1(:,1:L2);
+X2 = X2(:,1:L2);
 X1 = reshape(X1,1,fi,L2);
 X2 = reshape(X2,1,fi,L2);
 X(1,:,:) = X1;
@@ -96,8 +96,10 @@ end
 % 半分にした周波数を復元する
 y1 = [squeeze(Y(1,:,:))];
 y2 = [squeeze(Y(2,:,:))];
-y1 = [y1, conj(fliplr(y1))];
-y2 = [y2, conj(fliplr(y2))];
+y1 = [y1, conj(fliplr(y1(:,2:end-1)))];
+y2 = [y2, conj(fliplr(y2(:,2:end-1)))];
+testy1 = y1;
+testy2 = y2;
 y1 = istft(y1, o, fs, sl, countX1);
 y2 = istft(y2, o, fs, sl, countX2);
     
