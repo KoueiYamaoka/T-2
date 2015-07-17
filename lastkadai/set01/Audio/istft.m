@@ -8,9 +8,10 @@ ol = floor(p*o);
 Y = zeros(1,sl);  % istft後、格納するためのベクトル
 for k = 1:al
     Y(1 + ol*(k-1) : ol*(k-1) + p) = Y(1 + ol*(k-1) : ol*(k-1) + p) ...
-        + real(ifft(X(k,:)));
+        + ifft(X(k,:));
 end
+Y = real(Y);
 
-Y = Y ./ countX;
+% Y = Y ./ countX;
 [foo,foo2,Y] = find(Y);
 clear foo foo2

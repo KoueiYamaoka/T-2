@@ -25,31 +25,29 @@ sl = length(s1);
 % Wとその他諸々
 L2 = ceil(fs/2) + 1;         % 総フレーム数 / 2
 rng(509);                % seed値
-W = rand(2,2,L2) - 0.5%& + (rand(2,2,L2) - 0.5)*j;        % 分離行列
-compW = zeros(size(W));  % 反復終了判定の比較用
-maxloop = 300;          % 最大反復回数10000回
+W = rand(2,2,L2) - 0.5; % 分離行列
+loop = 30;          % 反復回数300回
 
 % X, Yについて
-X = zeros(2,fi,L2); % 2行, 周波集インデックス列, フレーム数
-X1 = X1(:,1:L2);
-X2 = X2(:,1:L2);
-X1 = reshape(X1,1,fi,L2);
-X2 = reshape(X2,1,fi,L2);
-X(1,:,:) = X1;
-X(2,:,:) = X2;
+X = zeros(2,fi,L2); % 2行, 周波集インデックス列, 周波数フレーム/2 +1
+% X = [X1; X2]となるように整形
+X(1,:,:) = reshape(X1(:,1:L2), 1, fi, L2);
+X(2,:,:) = reshape(X2(:,1:L2), 1, fi, L2);
 Y = zeros(size(X));
-tmp = zeros(size(W));
-XX = zeros(2,2,L2); % ループのmを先に計算したもの
+XX = zeros(2,2,L2); % ループのmを先に計算したものを格納する
 
 % 準備完了-----------------------------------------
 
-% warning
+%% warning
 % 収束せずにむしろ発散してる
 % Wの更新がうまくいってない可能性
 % 反復回数が大きくなると少しだけ収束する
 
+% wの更新はうまくいっているはず
+% どこが悪いかわからないが、うまく行っていない
+
 % 反復計算開始-------------------------------------
-for k=1:maxloop
+for k=1:loop
     k
     % Y = W * X 普通より0.2sec程度速い
     % 間違っていないことを確認
@@ -67,11 +65,10 @@ for k=1:maxloop
     normY2 = sqrt(sum(abs(Y2).^2));
     
     % 本体
-    % 普通に計算した場合より6秒ぐらい速い
+    % p=2^10のとき、普通に計算した場合より6秒ぐらい速い
     for i = 1:L2
         XX(:,:,i) = calcm(Y1(i,:), Y2(i,:), normY1, normY2, fi);
     end
-    compW = W; % 反復終了判定用にWを保存
 
     % W = XX * W
     W(:,1,:) = sum(XX .* repmat(permute(W(:,1,:),[2,1,3]), 2,1), 2); 
@@ -79,12 +76,6 @@ for k=1:maxloop
     W(:,:,100) % 確認のため適当なWを表示
 
     % Wの更新終了----------------------------------------------------
-    % 反復終了判定. tは収束したWの要素の数
-    tmp = abs(compW - W);
-    t = numel(find(tmp < 10e-4))
-    if  t == 4 * L2
-        break;
-    end  
 end
     
 % 最後の積計算
@@ -94,12 +85,10 @@ end
 
 % istft
 % 半分にした周波数を復元する
-y1 = [squeeze(Y(1,:,:))];
-y2 = [squeeze(Y(2,:,:))];
-y1 = [y1, conj(fliplr(y1(:,2:end-1)))];
-y2 = [y2, conj(fliplr(y2(:,2:end-1)))];
-testy1 = y1;
-testy2 = y2;
-y1 = istft(y1, o, fs, sl, countX1);
-y2 = istft(y2, o, fs, sl, countX2);
+Y1 = [squeeze(Y(1,:,:))];
+Y2 = [squeeze(Y(2,:,:))];
+Y1 = [Y1, conj(fliplr(Y1(:,2:end-1)))];
+Y2 = [Y2, conj(fliplr(Y2(:,2:end-1)))];
+y1 = istft(Y1, o, fs, sl, countX1);
+y2 = istft(Y2, o, fs, sl, countX2);
     

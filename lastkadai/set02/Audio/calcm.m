@@ -1,7 +1,6 @@
 function tmpY = calcm(Y1, Y2, normY1, normY2, fi)
 
-
-mu = 0.05;
+mu = 0.1;
 ganma = 0.1;
 ty1 = ganma * conj(Y1);
 ty2 = ganma * conj(Y2);
