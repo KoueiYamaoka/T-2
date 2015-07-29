@@ -1,5 +1,5 @@
-x1 =  wavread('kongou1.wav');  % 列ベクトル
-x2 =  wavread('kongou2.wav');
+x1 =  wavread('~/Documents/T2/kadai1/wavFiles/kongou1.wav');  % 列ベクトル
+x2 =  wavread('~/Documents/T2/kadai1/wavFiles/kongou2.wav');
 X = [x1,x2];         % n行2列
 N = length(x1);      % ベクトルサイズ
 W = zeros(2, 2);   % 2行2列

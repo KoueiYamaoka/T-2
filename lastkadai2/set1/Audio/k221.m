@@ -4,8 +4,8 @@ mu = 0.15;
 ganma = 0.3;
 
 % 混合音声の読み込み-----------------------------
-[Mic1, Fs] = wavread('Mic_Ch4.wav');
-Mic2 = wavread('Mic_Ch5.wav');
+[Mic1, Fs] = wavread('Mic_Ch2.wav');
+Mic2 = wavread('Mic_Ch3.wav');
 s1 = Mic1';
 s2 = Mic2';
 % 読み込み完了-----------------------------------
@@ -29,7 +29,7 @@ sl = length(s1);
 L2 = ceil(fs/2) + 1;         % 総フレーム数 / 2
 rng(509);                % seed値
 W = rand(2,2,L2) - 0.5; % 分離行列
-loop = 500;          % 反復回数500回ぐらいが良さそう。300でも十分だと思う
+loop = 1000;          % 反復回数500回ぐらいが良さそう。300でも十分だと思う
 
 % X, Yについて
 % あっていることを確認
@@ -89,6 +89,31 @@ for l = 1:fi
     Y(:,l,:) = sum(W .* repmat(permute(X(:,l,:),[2,1,3]), 2, 1), 2);
 end
 
+% スケーリング
+% 時間があればfor文撤去
+Z = zeros(2,2,fi,L2);
+for s=1:L2
+    invW = inv(W(:,:,s));
+    for i=1:fi
+        Z(:,:,i,s) = invW * diag(Y(:,i,s));
+    end
+end
+Y(1,:,:) = squeeze(Z(1,1,:,:));
+Y(2,:,:) = squeeze(Z(2,2,:,:));
+
+% バンドパスフィルタに通してみる
+% 通さない方が良い
+%N = L2-1;
+%Wn = [200 5000] / (Fs/2);
+%bpf = fir1(N, Wn, 'bandpass');
+%tmpbpf = zeros(size(Y(1,1,:)));
+%tmpbpf(1,:,:) = bpf;
+%YY = zeros(size(Y));
+%for i=1:fi
+%    YY(1,i,:) = Y(1,i,:) .* tmpbpf;
+%    YY(2,i,:) = Y(2,i,:) .* tmpbpf;
+%end
+
 % istft
 % 半分にした周波数を復元する
 Y1 = [squeeze(Y(1,:,:))];
@@ -98,4 +123,9 @@ Y2 = [Y2, conj(fliplr(Y2(:,2:end-1)))];
 y1 = istft(Y1, o, fs, sl, countX1);
 y2 = istft(Y2, o, fs, sl, countX2);
 
-    
+%YY1 = [squeeze(YY(1,:,:))];
+%YY2 = [squeeze(YY(2,:,:))];
+%YY1 = [YY1, conj(fliplr(YY1(:,2:end-1)))];
+%YY2 = [YY2, conj(fliplr(YY2(:,2:end-1)))];
+%yy1 = istft(YY1, o, fs, sl, countX1);
+%yy2 = istft(YY2, o, fs, sl, countX2);

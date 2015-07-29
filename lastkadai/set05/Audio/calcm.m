@@ -1,8 +1,5 @@
-function tmpY = calcm(Y1, Y2, normY1, normY2, fi)
+function tmpY = calcm(Y1, Y2, normY1, normY2, fi, mu, ganma)
 
-
-mu = 0.05;
-ganma = 0.1;
 ty1 = ganma * conj(Y1);
 ty2 = ganma * conj(Y2);
 tmpY = [sum((Y1.*ty1)./normY1), sum((Y1.*ty2)./normY1); ...
