@@ -1,7 +1,7 @@
 %function [y1, y2] = k221(mu, ganma)
 
-mu = 0.5;
-ganma = 0.5;
+mu = 0.1;
+ganma = 0.05;
 
 % 混合音声の読み込み-----------------------------
 [Mic1, Fs] = wavread('Mic_Ch1.wav');
